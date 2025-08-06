@@ -13,6 +13,24 @@
 
 ## 🚀 Quick Start
 
+### Option 1: Automated Setup (Recommended)
+
+**Linux/macOS:**
+```bash
+git clone https://github.com/Aarav2709/CyberQuestJR.git
+cd CyberQuestJR
+chmod +x deployment/setup-linux.sh
+./deployment/setup-linux.sh
+./start.sh
+```
+
+**Windows:**
+1. Clone or download the repository
+2. Double-click `deployment/setup-windows.bat`
+3. Double-click `start.bat`
+
+### Option 2: Manual Setup
+
 ### Prerequisites
 - Python 3.8+
 - Node.js 16+
@@ -86,6 +104,8 @@
 
 6. **Open Your Browser**
    Navigate to `http://localhost:8000` and start learning! 🎉
+
+> 💡 **Tip:** Use the automated setup scripts in the `deployment/` folder for a one-click installation experience!
 
 ## 🔧 Troubleshooting
 

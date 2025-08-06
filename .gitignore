@@ -18,6 +18,15 @@ var/
 wheels/
 *.egg-info/
 .installed.cfg
+
+# CyberQuest Jr specific
+backend/static/
+backend/*.db
+frontend/dist/
+frontend/node_modules/
+start.sh
+start.bat
+.env
 *.egg
 MANIFEST
 
