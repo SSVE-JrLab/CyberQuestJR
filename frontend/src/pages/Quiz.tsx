@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { quizAPI } from '../services/api';
 import { QuizQuestion, QuizAnswer } from '../types';
-import { Brain, ArrowRight, RotateCcw } from 'lucide-react';
+import { Brain, ArrowRight, RotateCcw, Sparkles } from 'lucide-react';
 
 const Quiz: React.FC = () => {
   const { type = 'general' } = useParams();
   const navigate = useNavigate();
-  
+
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<QuizAnswer[]>([]);
@@ -16,6 +16,7 @@ const Quiz: React.FC = () => {
   const [quizResult, setQuizResult] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [personalizedCourse, setPersonalizedCourse] = useState<any>(null);
 
   useEffect(() => {
     loadQuiz();
@@ -60,20 +61,18 @@ const Quiz: React.FC = () => {
     }
   };
 
-  const handleAnswerSelect = (option: string) => {
-    setSelectedOption(option);
+  const handleAnswerSelect = (optionText: string) => {
+    setSelectedOption(optionText);
   };
 
   const handleNextQuestion = () => {
     if (!selectedOption) return;
 
     const currentQuestion = questions[currentQuestionIndex];
-    const isCorrect = selectedOption === currentQuestion.correct_answer;
-    
+
     const newAnswer: QuizAnswer = {
-      question_id: currentQuestion.id,
-      answer: selectedOption,
-      is_correct: isCorrect
+      question_id: String(currentQuestion.id),
+      answer: selectedOption
     };
 
     const newAnswers = [...answers, newAnswer];
@@ -92,17 +91,49 @@ const Quiz: React.FC = () => {
     try {
       const submission = {
         quiz_type: type,
-        answers: finalAnswers
+        answers: finalAnswers,
+        anonymous_name: "CyberHero" + Math.floor(Math.random() * 1000)
       };
-      
+
       const result = await quizAPI.submitQuiz(submission);
       setQuizResult(result);
+
+      // If this is an assessment quiz, generate personalized course
+      if (type === 'assessment') {
+        try {
+          const courseResponse = await fetch('/api/course/generate', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              assessment_result: result,
+              answers: finalAnswers,
+              quiz_type: type
+            }),
+          });
+
+          if (courseResponse.ok) {
+            const course = await courseResponse.json();
+            setPersonalizedCourse(course);
+            localStorage.setItem('personalized_course', JSON.stringify(course));
+            localStorage.setItem('assessment_completed', 'true');
+          }
+        } catch (courseError) {
+          console.error('Failed to generate course:', courseError);
+        }
+      }
+
       setShowResult(true);
     } catch (error) {
       console.error('Failed to submit quiz:', error);
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const startPersonalizedCourse = () => {
+    navigate('/dashboard');
   };
 
   const restartQuiz = () => {
@@ -134,18 +165,23 @@ const Quiz: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="card text-center">
-            <div className="text-6xl mb-6">{quizResult.feedback.title.includes('Awesome') ? '🏆' : quizResult.feedback.title.includes('Great') ? '⭐' : '🌟'}</div>
-            
+            <div className="text-6xl mb-6">
+              {type === 'assessment' ? '🎯' : quizResult.feedback.title.includes('Awesome') ? '🏆' : quizResult.feedback.title.includes('Great') ? '⭐' : '🌟'}
+            </div>
+
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              {quizResult.feedback.title}
+              {type === 'assessment' ? '🎉 Assessment Complete!' : quizResult.feedback.title}
             </h2>
-            
+
             <div className="bg-primary-50 rounded-lg p-6 mb-6">
               <div className="text-4xl font-bold text-primary-600 mb-2">
                 {Math.round(quizResult.score)}%
               </div>
               <p className="text-gray-700 text-lg">
-                {quizResult.feedback.message}
+                {type === 'assessment'
+                  ? "Great job! We've analyzed your skills and created a personalized learning journey just for you!"
+                  : quizResult.feedback.message
+                }
               </p>
             </div>
 
@@ -153,15 +189,39 @@ const Quiz: React.FC = () => {
               quizResult.level === 'advanced' ? 'bg-yellow-500' :
               quizResult.level === 'intermediate' ? 'bg-blue-500' : 'bg-green-500'
             }`}>
-              Level: {quizResult.level.charAt(0).toUpperCase() + quizResult.level.slice(1)}
+              {type === 'assessment' ? 'Skill Level' : 'Level'}: {quizResult.level.charAt(0).toUpperCase() + quizResult.level.slice(1)}
             </div>
 
-            <p className="text-gray-600 mb-8">
-              {quizResult.feedback.encouragement}
-            </p>
+            {/* Assessment-specific content */}
+            {type === 'assessment' && personalizedCourse && (
+              <div className="text-left mb-8">
+                <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">
+                  🌟 Your Personalized CyberQuest Adventure!
+                </h3>
+                <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg p-6 mb-6">
+                  <h4 className="text-lg font-semibold text-purple-800 mb-2">{personalizedCourse.title}</h4>
+                  <p className="text-purple-700 mb-4">{personalizedCourse.description}</p>
 
-            {/* Learning Path Recommendations */}
-            {quizResult.learning_path && quizResult.learning_path.length > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {personalizedCourse.modules && personalizedCourse.modules.map((module: any, index: number) => (
+                      <div key={index} className="bg-white rounded-lg p-4 shadow-sm">
+                        <div className="flex items-center space-x-3">
+                          <div className="text-2xl">{module.icon}</div>
+                          <div>
+                            <h5 className="font-medium text-gray-900">{module.name}</h5>
+                            <p className="text-sm text-gray-600">{module.description}</p>
+                            <span className="text-xs text-purple-600 font-medium">{module.duration}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Regular quiz learning path */}
+            {type !== 'assessment' && quizResult.learning_path && quizResult.learning_path.length > 0 && (
               <div className="text-left mb-8">
                 <h3 className="text-xl font-bold text-gray-900 mb-4">
                   🎯 Your Personalized Learning Path
@@ -184,20 +244,33 @@ const Quiz: React.FC = () => {
             )}
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button
-                onClick={restartQuiz}
-                className="btn-secondary flex items-center justify-center"
-              >
-                <RotateCcw className="h-4 w-4 mr-2" />
-                Try Again
-              </button>
-              <button
-                onClick={goToDashboard}
-                className="btn-primary flex items-center justify-center"
-              >
-                Continue Learning
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </button>
+              {type === 'assessment' ? (
+                <button
+                  onClick={startPersonalizedCourse}
+                  className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-3 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 inline-flex items-center space-x-2"
+                >
+                  <Sparkles className="h-5 w-5" />
+                  <span>🚀 Let's Go! Start My Course</span>
+                  <ArrowRight className="h-5 w-5" />
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={restartQuiz}
+                    className="btn-secondary flex items-center justify-center"
+                  >
+                    <RotateCcw className="h-4 w-4 mr-2" />
+                    Try Again
+                  </button>
+                  <button
+                    onClick={goToDashboard}
+                    className="btn-primary flex items-center justify-center"
+                  >
+                    Continue Learning
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -222,7 +295,7 @@ const Quiz: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-2">
@@ -234,7 +307,7 @@ const Quiz: React.FC = () => {
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
+            <div
               className="bg-gradient-to-r from-primary-500 to-purple-500 h-2 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             ></div>
@@ -259,9 +332,9 @@ const Quiz: React.FC = () => {
               {currentQuestion.options.map((option, index) => (
                 <button
                   key={index}
-                  onClick={() => handleAnswerSelect(option.charAt(0))}
+                  onClick={() => handleAnswerSelect(option)}
                   className={`w-full text-left p-4 rounded-lg border-2 transition-all duration-200 ${
-                    selectedOption === option.charAt(0)
+                    selectedOption === option
                       ? 'border-primary-500 bg-primary-50 text-primary-700'
                       : 'border-gray-200 hover:border-gray-300 bg-white'
                   }`}
@@ -276,7 +349,7 @@ const Quiz: React.FC = () => {
             <div className="text-sm text-gray-500">
               Choose the best answer and click next
             </div>
-            
+
             <button
               onClick={handleNextQuestion}
               disabled={!selectedOption}

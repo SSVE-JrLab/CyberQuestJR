@@ -1,8 +1,24 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Shield, Zap, Users, Award, ArrowRight, Star } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Shield, Zap, Users, Award, ArrowRight, Star, Brain } from 'lucide-react';
 
 const Home: React.FC = () => {
+  const [hasCompletedAssessment, setHasCompletedAssessment] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if user has completed initial assessment
+    const assessmentCompleted = localStorage.getItem('assessment_completed');
+    setHasCompletedAssessment(!!assessmentCompleted);
+  }, []);
+
+  const startAssessment = () => {
+    // Clear any previous assessment data
+    localStorage.removeItem('assessment_completed');
+    localStorage.removeItem('personalized_course');
+    navigate('/quiz/assessment');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100 dark:from-purple-900 dark:via-blue-900 dark:to-indigo-900 dark:text-white">
       <section className="relative overflow-hidden">
@@ -28,26 +44,42 @@ const Home: React.FC = () => {
             
             <p className="text-xl text-gray-600 dark:text-gray-400 mb-12 max-w-3xl mx-auto leading-relaxed">
               Join thousands of young cyber heroes (ages 8-18) on an exciting adventure to protect the digital world! 
-              Learn about passwords, spot sneaky phishing attempts, and become a cybersecurity superhero! 🦸‍♂️🦸‍♀️
+              {!hasCompletedAssessment 
+                ? "First, let's see what you already know with a quick assessment!" 
+                : "Continue your personalized cybersecurity journey!"
+              } 🦸‍♂️🦸‍♀️
             </p>
 
             <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
-              <Link
-                to="/dashboard"
-                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-xl font-bold py-4 px-8 rounded-2xl shadow-2xl transform hover:scale-105 transition-all duration-300 border-4 border-white/30 inline-flex items-center space-x-2"
-              >
-                <Shield className="h-6 w-6" />
-                <span>🚀 Start Your Adventure!</span>
-                <ArrowRight className="h-6 w-6" />
-              </Link>
-              <Link
-                to="/quiz"
-                className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white text-xl font-bold py-4 px-8 rounded-2xl shadow-2xl transform hover:scale-105 transition-all duration-300 border-4 border-white/30 inline-flex items-center space-x-2"
-              >
-                <Zap className="h-6 w-6" />
-                <span>🧠 Take a Quiz!</span>
-                <ArrowRight className="h-6 w-6" />
-              </Link>
+              {!hasCompletedAssessment ? (
+                <button
+                  onClick={startAssessment}
+                  className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white text-xl font-bold py-4 px-8 rounded-2xl shadow-2xl transform hover:scale-105 transition-all duration-300 border-4 border-white/30 inline-flex items-center space-x-2"
+                >
+                  <Brain className="h-6 w-6" />
+                  <span>🧠 Start Assessment Quiz!</span>
+                  <ArrowRight className="h-6 w-6" />
+                </button>
+              ) : (
+                <>
+                  <Link
+                    to="/dashboard"
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-xl font-bold py-4 px-8 rounded-2xl shadow-2xl transform hover:scale-105 transition-all duration-300 border-4 border-white/30 inline-flex items-center space-x-2"
+                  >
+                    <Shield className="h-6 w-6" />
+                    <span>🚀 Continue Learning!</span>
+                    <ArrowRight className="h-6 w-6" />
+                  </Link>
+                  <button
+                    onClick={startAssessment}
+                    className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-xl font-bold py-4 px-8 rounded-2xl shadow-2xl transform hover:scale-105 transition-all duration-300 border-4 border-white/30 inline-flex items-center space-x-2"
+                  >
+                    <Brain className="h-6 w-6" />
+                    <span>🔄 Retake Assessment</span>
+                    <ArrowRight className="h-6 w-6" />
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

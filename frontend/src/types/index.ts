@@ -7,15 +7,14 @@ export interface QuizQuestion {
 }
 
 export interface QuizAnswer {
-  question_id: number;
+  question_id: string;
   answer: string;
-  is_correct: boolean;
 }
 
 export interface QuizSubmission {
   quiz_type: string;
   answers: QuizAnswer[];
-  anonymous_name?: string;
+  anonymous_name: string;
 }
 
 export interface QuizResult {

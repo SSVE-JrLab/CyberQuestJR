@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider } from './contexts/ThemeContext';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
@@ -10,11 +9,10 @@ import Leaderboard from './pages/Leaderboard';
 
 function App() {
   return (
-    <ThemeProvider>
-      <Router>
-        <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100 dark:from-purple-900 dark:via-blue-900 dark:to-indigo-900 dark:text-white transition-colors duration-300">
-          <Navbar />
-          <main>
+    <Router>
+      <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100">
+        <Navbar />
+        <main>
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/dashboard" element={<Dashboard />} />
@@ -26,7 +24,6 @@ function App() {
           </main>
         </div>
       </Router>
-    </ThemeProvider>
   );
 }
 

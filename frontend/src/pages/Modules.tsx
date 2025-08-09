@@ -144,22 +144,6 @@ const Modules: React.FC = () => {
             </div>
           ))}
         </div>
-
-        <div className="text-center mt-16">
-          <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-2xl p-8 text-white">
-            <h2 className="text-3xl font-bold mb-4">🎯 Ready for a Challenge?</h2>
-            <p className="text-xl mb-6">
-              Test your knowledge with our interactive quizzes after completing modules!
-            </p>
-            <Link
-              to="/quiz"
-              className="bg-white text-purple-600 font-bold py-3 px-8 rounded-xl hover:bg-gray-100 transition-colors duration-200 transform hover:scale-105 inline-flex items-center space-x-2"
-            >
-              <span>Take a Quiz!</span>
-              <ArrowRight className="h-5 w-5" />
-            </Link>
-          </div>
-        </div>
       </div>
     </div>
   );
