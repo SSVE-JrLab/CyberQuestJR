@@ -22,13 +22,23 @@ wheels/
 # CyberQuest Jr specific
 backend/static/
 backend/*.db
+backend/cyberquest*.db
 frontend/dist/
 frontend/node_modules/
-start.sh
-start.bat
 .env
 *.egg
 MANIFEST
+
+# Temporary and cache files
+*.log
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
 
 # PyInstaller
 *.manifest
