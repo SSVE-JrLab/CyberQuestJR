@@ -8,4 +8,3 @@ from .game_engine import GameEngine
 
 # Global game engine instance; will gracefully fall back if GEMINI_API_KEY is missing
 ai_engine = GameEngine()
-
