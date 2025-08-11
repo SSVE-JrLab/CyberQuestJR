@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Shield, Zap, Users, Award, ArrowRight, Star, Brain } from 'lucide-react';
 
-const Home: React.FC = () => {
+const Home = () => {
   const [hasCompletedAssessment, setHasCompletedAssessment] = useState(false);
   const navigate = useNavigate();
 
@@ -23,7 +23,7 @@ const Home: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100 dark:from-purple-900 dark:via-blue-900 dark:to-indigo-900 dark:text-white">
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 via-pink-400/20 to-purple-400/20 animate-pulse"></div>
-        
+
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
           <div className="text-center">
             <div className="mb-8 flex justify-center">
@@ -33,19 +33,19 @@ const Home: React.FC = () => {
                 <Zap className="h-6 w-6 text-orange-400 absolute -bottom-1 -left-1 animate-pulse" />
               </div>
             </div>
-            
+
             <h1 className="text-6xl md:text-7xl font-black mb-6 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent drop-shadow-lg">
               🛡️ CyberQuest Jr! 🚀
             </h1>
-            
+
             <p className="text-2xl md:text-3xl text-gray-700 dark:text-gray-300 mb-8 font-bold">
               🌟 The Super Fun Way to Learn Cybersecurity! 🌟
             </p>
-            
+
             <p className="text-xl text-gray-600 dark:text-gray-400 mb-12 max-w-3xl mx-auto leading-relaxed">
-              Join thousands of young cyber heroes (ages 8-18) on an exciting adventure to protect the digital world! 
-              {!hasCompletedAssessment 
-                ? "First, let's see what you already know with a quick assessment!" 
+              Join thousands of young cyber heroes (ages 8-18) on an exciting adventure to protect the digital world!
+              {!hasCompletedAssessment
+                ? "First, let's see what you already know with a quick assessment!"
                 : "Continue your personalized cybersecurity journey!"
               } 🦸‍♂️🦸‍♀️
             </p>
@@ -91,7 +91,7 @@ const Home: React.FC = () => {
             <h2 className="text-4xl font-black text-gray-800 dark:text-white mb-4">🎯 Why Choose CyberQuest Jr?</h2>
             <p className="text-xl text-gray-600 dark:text-gray-300">Perfect for young minds aged 8-18!</p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="bg-gradient-to-br from-yellow-300 to-orange-400 p-8 rounded-3xl shadow-2xl transform hover:scale-105 transition-all duration-300 border-4 border-white/50">
               <Zap className="h-16 w-16 text-orange-800 mb-4 mx-auto" />
@@ -134,26 +134,26 @@ const Home: React.FC = () => {
             <h2 className="text-4xl font-black mb-6">🎮 Learning Modules</h2>
             <p className="text-xl opacity-90">Fun adventures that teach real cybersecurity skills!</p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="bg-white/20 backdrop-blur-sm p-6 rounded-2xl border-2 border-white/30 hover:bg-white/30 transition-all">
               <div className="text-6xl mb-4 text-center">🔐</div>
               <h3 className="text-xl font-bold mb-3 text-center">Password Heroes</h3>
               <p className="text-center opacity-90">Create super-strong passwords that protect your digital world!</p>
             </div>
-            
+
             <div className="bg-white/20 backdrop-blur-sm p-6 rounded-2xl border-2 border-white/30 hover:bg-white/30 transition-all">
               <div className="text-6xl mb-4 text-center">🕵️</div>
               <h3 className="text-xl font-bold mb-3 text-center">Phishing Detective</h3>
               <p className="text-center opacity-90">Spot fake emails and websites like a true detective!</p>
             </div>
-            
+
             <div className="bg-white/20 backdrop-blur-sm p-6 rounded-2xl border-2 border-white/30 hover:bg-white/30 transition-all">
               <div className="text-6xl mb-4 text-center">👣</div>
               <h3 className="text-xl font-bold mb-3 text-center">Digital Footprints</h3>
               <p className="text-center opacity-90">Learn what traces you leave online and how to manage them!</p>
             </div>
-            
+
             <div className="bg-white/20 backdrop-blur-sm p-6 rounded-2xl border-2 border-white/30 hover:bg-white/30 transition-all">
               <div className="text-6xl mb-4 text-center">📱</div>
               <h3 className="text-xl font-bold mb-3 text-center">Social Media Safety</h3>
@@ -169,7 +169,7 @@ const Home: React.FC = () => {
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
             Join thousands of young adventurers learning to protect the digital world! It's free, fun, and educational! 🎉
           </p>
-          
+
           {/* Removed user check - always show call to action */}
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <Link

@@ -1,217 +1,200 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { progressAPI } from '../services/api';
-import { Progress } from '../types';
-import {
-  BookOpen,
-  Trophy,
-  Star,
-  ChevronRight,
-  Play,
-  Sparkles,
-  Clock
-} from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { userAPI, courseAPI } from '../services/api';
+import { UserProgress, Course } from '../types';
 
-const Dashboard: React.FC = () => {
-  const [progress, setProgress] = useState<Progress | null>(null);
+const Dashboard = () => {
+  const navigate = useNavigate();
+  const [progress, setProgress] = useState<UserProgress | null>(null);
+  const [courses, setCourses] = useState<Record<string, Course>>({});
   const [loading, setLoading] = useState(true);
-  const [personalizedCourse, setPersonalizedCourse] = useState<any>(null);
+  const userId = localStorage.getItem('cyberquest_user_id');
+  const userName = localStorage.getItem('cyberquest_user_name') || 'Student';
 
   useEffect(() => {
-    const fetchProgress = async () => {
+    if (!userId) {
+      navigate('/profile');
+      return;
+    }
+
+    const fetchData = async () => {
       try {
-        const data = await progressAPI.getProgress();
-        setProgress(data);
+        const [progressData, coursesData] = await Promise.all([
+          userAPI.getUserProgress(parseInt(userId)),
+          courseAPI.getCourses()
+        ]);
+
+        setProgress(progressData);
+        setCourses(coursesData.courses);
       } catch (error) {
-        console.error('Error fetching progress:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    // Check for personalized course and assessment
-    const courseData = localStorage.getItem('personalized_course');
+    fetchData();
+  }, [userId, navigate]);
 
-    if (courseData) {
-      setPersonalizedCourse(JSON.parse(courseData));
-    }
+  const getProgressPercentage = () => {
+    if (!progress) return 0;
+    return Math.round((progress.completed_courses / progress.total_courses) * 100);
+  };
 
-    fetchProgress();
-  }, []);
+  const getCourseStatus = (courseId: string) => {
+    if (!progress?.progress[courseId]) return 'not-started';
+    return progress.progress[courseId].completed ? 'completed' : 'in-progress';
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100 dark:from-purple-900 dark:via-blue-900 dark:to-indigo-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-purple-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100 dark:from-purple-900 dark:via-blue-900 dark:to-indigo-900 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-purple-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Hero Section */}
+        {/* Welcome Section */}
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-4">
-            Welcome to Your Cyber Adventure! 🚀
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            Welcome back, {userName}! 🎓
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-6">
-            Ready to continue your cybersecurity adventure? No account needed! 🎉
+            Continue your cybersecurity learning journey
           </p>
+
+          {/* Progress Overview */}
           {progress && (
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 inline-block">
-              <p className="text-lg font-semibold text-gray-800 dark:text-white">{progress.message}</p>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-md mx-auto">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                  Overall Progress
+                </span>
+                <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                  {getProgressPercentage()}%
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 mb-4">
+                <div
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-500"
+                  style={{ width: `${getProgressPercentage()}%` }}
+                />
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {progress.completed_courses} of {progress.total_courses} courses completed
+              </p>
+
+              {progress.eligible_for_certificate && (
+                <div className="mt-4 p-3 bg-green-100 dark:bg-green-900 rounded-lg">
+                  <p className="text-green-800 dark:text-green-200 font-semibold">
+                    🎉 Ready for your certificate!
+                  </p>
+                  <button
+                    onClick={() => userAPI.issueCertificate(parseInt(userId!))}
+                    className="mt-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold"
+                  >
+                    Get Certificate
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
 
-        {/* Personalized Course Section */}
-        {personalizedCourse && (
-          <div className="mb-12">
-            <div className="bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 rounded-2xl p-8 border-4 border-green-200 dark:border-green-700">
-              <div className="flex items-center mb-6">
-                <Sparkles className="h-8 w-8 text-green-600 mr-3" />
-                <h2 className="text-3xl font-bold text-green-800 dark:text-green-200">
-                  🎯 Your AI-Generated Learning Path
-                </h2>
-              </div>
+        {/* Courses Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Object.entries(courses).map(([courseId, course]) => {
+            const status = getCourseStatus(courseId);
+            const courseProgress = progress?.progress[courseId];
 
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 mb-6">
-                <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
-                  {personalizedCourse.title}
+            return (
+              <Link
+                key={courseId}
+                to={`/course/${courseId}`}
+                className="group block bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="text-4xl">{course.icon}</div>
+                  <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                    status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                    status === 'in-progress' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                    'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                  }`}>
+                    {status === 'completed' ? 'Completed' :
+                     status === 'in-progress' ? 'In Progress' : 'Start'}
+                  </div>
+                </div>
+
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  {course.title}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-300 mb-4">
-                  {personalizedCourse.description}
+
+                <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
+                  {course.description}
                 </p>
 
-                <div className="flex items-center gap-4 mb-6">
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    personalizedCourse.skill_level === 'advanced' ? 'bg-yellow-100 text-yellow-800' :
-                    personalizedCourse.skill_level === 'intermediate' ? 'bg-blue-100 text-blue-800' :
-                    'bg-green-100 text-green-800'
+                <div className="flex items-center justify-between">
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                    course.level === 'beginner' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' :
+                    course.level === 'intermediate' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300' :
+                    'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
                   }`}>
-                    {personalizedCourse.skill_level} level
+                    {course.level}
                   </span>
-                  <span className="flex items-center text-gray-600 dark:text-gray-400">
-                    <Clock className="h-4 w-4 mr-1" />
-                    {personalizedCourse.estimated_duration}
-                  </span>
+
+                  {courseProgress && courseProgress.best_quiz_score > 0 && (
+                    <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                      Best: {Math.round(courseProgress.best_quiz_score)}%
+                    </span>
+                  )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {personalizedCourse.modules && personalizedCourse.modules.map((module: any, index: number) => (
-                    <div key={index} className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900 dark:to-pink-900 rounded-lg p-4 border border-purple-200 dark:border-purple-700">
-                      <div className="flex items-start space-x-3">
-                        <div className="text-2xl">{module.icon}</div>
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-800 dark:text-white">{module.name}</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">{module.description}</p>
-                          <span className="text-xs text-purple-600 dark:text-purple-400 font-medium">{module.duration}</span>
-                        </div>
-                      </div>
+                {status === 'in-progress' && courseProgress && (
+                  <div className="mt-3">
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div
+                        className="bg-blue-500 h-2 rounded-full"
+                        style={{ width: `${Math.min(courseProgress.quiz_attempts * 20, 100)}%` }}
+                      />
                     </div>
-                  ))}
-                </div>
-              </div>
+                  </div>
+                )}
+              </Link>
+            );
+          })}
+        </div>
 
-              <div className="text-center">
-                <Link
-                  to="/modules"
-                  className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-3 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 inline-flex items-center space-x-2"
-                >
-                  <Play className="h-5 w-5" />
-                  <span>🚀 Start My Learning Adventure</span>
-                  <ChevronRight className="h-5 w-5" />
-                </Link>
+        {/* Quick Stats */}
+        {progress && (
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 text-center">
+              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                {progress.completed_courses}
+              </div>
+              <div className="text-gray-600 dark:text-gray-300">Courses Completed</div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 text-center">
+              <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
+                {Math.round(progress.average_score)}%
+              </div>
+              <div className="text-gray-600 dark:text-gray-300">Average Score</div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 text-center">
+              <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
+                {progress.certificate ? '🏆' : progress.eligible_for_certificate ? '🎯' : '📚'}
+              </div>
+              <div className="text-gray-600 dark:text-gray-300">
+                {progress.certificate ? 'Certified!' :
+                 progress.eligible_for_certificate ? 'Ready to Graduate' : 'Learning'}
               </div>
             </div>
           </div>
         )}
-
-        {/* Learning Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          <div className="bg-gradient-to-r from-purple-500 to-indigo-500 rounded-2xl p-6 text-white text-center transform hover:scale-105 transition-all duration-300">
-            <BookOpen className="h-12 w-12 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold">
-              {progress?.available_modules || 6} Gaming Modules
-            </h3>
-            <p className="text-purple-100">Interactive Adventures</p>
-          </div>
-
-          <div className="bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl p-6 text-white text-center transform hover:scale-105 transition-all duration-300">
-            <Star className="h-12 w-12 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold">AI-Powered</h3>
-            <p className="text-blue-100">Personalized Challenges</p>
-          </div>
-
-          <div className="bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl p-6 text-white text-center transform hover:scale-105 transition-all duration-300">
-            <Trophy className="h-12 w-12 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold">Unlimited</h3>
-            <p className="text-yellow-100">Fun & Learning</p>
-          </div>
-        </div>
-
-        {/* Gaming Modules Preview */}
-        <div className="mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
-            🎮 Interactive Gaming Modules
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300">
-              <div className="text-4xl mb-4">🔐</div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Password Heroes</h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-4">Become a password superhero and create unbreakable digital fortresses!</p>
-              <Link to="/modules/password-basics" className="text-purple-600 hover:text-purple-800 font-medium">Start Adventure →</Link>
-            </div>
-
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300">
-              <div className="text-4xl mb-4">🕵️</div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Phishing Detective</h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-4">Train your detective skills to spot and avoid phishing attempts!</p>
-              <Link to="/modules/phishing-awareness" className="text-purple-600 hover:text-purple-800 font-medium">Start Adventure →</Link>
-            </div>
-
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300">
-              <div className="text-4xl mb-4">🛡️</div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Privacy Guardian</h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-4">Master the art of protecting your personal information online!</p>
-              <Link to="/modules/privacy-guardian" className="text-purple-600 hover:text-purple-800 font-medium">Start Adventure →</Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">Quick Actions</h2>
-
-          <div className="max-w-lg mx-auto">
-            <div className="flex justify-center">
-              <Link
-                to="/modules"
-                className="flex items-center p-6 bg-gradient-to-r from-pink-100 to-rose-100 dark:from-pink-800 dark:to-rose-800 rounded-xl hover:from-pink-200 hover:to-rose-200 dark:hover:from-pink-700 dark:hover:to-rose-700 transition-all duration-300 group w-full max-w-md"
-              >
-                <div className="w-12 h-12 bg-pink-500 rounded-xl flex items-center justify-center mr-4">
-                  <Star className="h-6 w-6 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-gray-800 dark:text-white">Browse All Modules</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">Explore all gaming adventures</p>
-                </div>
-                <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-pink-600 transition-colors" />
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Fun Fact */}
-        <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-2xl p-8 text-white text-center">
-          <h2 className="text-3xl font-bold mb-4">🎉 Fun Fact!</h2>
-          <p className="text-xl">
-            Cybersecurity heroes help protect over 4.6 billion internet users worldwide!
-            You're joining an amazing community of digital defenders! 🛡️
-          </p>
-        </div>
       </div>
     </div>
   );
