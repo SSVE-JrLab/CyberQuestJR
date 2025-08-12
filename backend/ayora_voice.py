@@ -48,7 +48,7 @@ class AyoraVoiceEngine:
         # OpenAI Configuration
         try:
             from openai import OpenAI
-            self.openai_api_key = os.getenv("OPENAI_API_KEY", "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")
+            self.openai_api_key = os.getenv("OPENAI_API_KEY", "KEYHERE")
             self.openai_client = OpenAI(api_key=self.openai_api_key)
         except ImportError:
             print("OpenAI package not available")

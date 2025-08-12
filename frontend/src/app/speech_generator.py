@@ -5,7 +5,7 @@ from enum import Enum
 import json
 
 # Set OpenAI API key from the existing key in the file
-openai.api_key = "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"
+openai.api_key = "KEYHERE"
 
 class AnimationState(Enum):
     BREATHING_IDLE = "breathing_idle"
